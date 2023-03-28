@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+    # Database Server
+    database:
+        image: mariadb:10.5.8
+        container_name: ${APP_NAME_LOWERCASE}-db
+        ports:
+            - "3306:3306"
+        environment:
+            - MYSQL_DATABASE=${DB_DATABASE}
+            - MYSQL_USER=${DB_USERNAME}
+            - MYSQL_PASSWORD=${DB_PASSWORD}
+            - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
+        volumes:
+            - db-data:/var/lib/mysql
+
+    # Nginx Server
+    nginx:
+        build:
+            context: .
+            dockerfile: docker/nginx/Dockerfile
+        container_name: ${APP_NAME_LOWERCASE}-nginx
+        volumes:
+            - ./public/api:/var/www/api
+            - ./public/app:/var/www/app
+            - ./public/home:/var/www/home
+        working_dir: /var/www
+        ports:
+            - "80:80"
+        links:
+            - api
+        depends_on:
+            - api
+            - app
+            - home
+
+    # PHP API Service
+    api:
+        build:
+            context: .
+            dockerfile: docker/api/Dockerfile
+        container_name: ${APP_NAME_LOWERCASE}-api
+        volumes:
+            - ./src/api:/var/www/api
+            - ./public/api:/var/www/api/public
+        working_dir: /var/www/api
+        depends_on:
+            - database
+
+    # App Frontend
+    app:
+        build:
+            context: .
+            dockerfile: docker/app/Dockerfile
+        container_name: ${APP_NAME_LOWERCASE}-app
+        volumes:
+            - ./src/app:/var/www/app
+            - ./public/app:/var/www/app/dist
+        working_dir: /var/www/app
+        tty: true
+
+    # Home Frontend
+    home:
+        build:
+            context: .
+            dockerfile: docker/home/Dockerfile
+        container_name: ${APP_NAME_LOWERCASE}-home
+        volumes:
+            - ./src/home:/var/www/home
+            - ./public/home:/var/www/home/dist
+        working_dir: /var/www/home
+        tty: true
+
+volumes:
+    db-data: ~
