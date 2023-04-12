@@ -14,6 +14,9 @@ elif [ "$1" = "start" ]; then
   docker-compose start
 elif [ "$1" = "stop" ]; then
   docker-compose stop
+elif [ "$1" = "artisan" ]; then
+  shift
+  docker exec workspacer-api php artisan "$@"
 elif [ "$1" = "composer" ]; then
   shift
   docker exec workspacer-api composer "$@"

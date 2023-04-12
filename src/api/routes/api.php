@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -14,6 +13,12 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return response('Hello World', 200);
+Route::prefix('auth')->name('auth.')->group(function () {
+    Route::post('/sign-in', \App\Http\Controllers\Auth\LoginUserController::class)->name('sign_in');
+    Route::post('/sign-up', \App\Http\Controllers\Auth\CreateUserController::class)->name('sign_up');
+
+    Route::middleware(['auth:sanctum'])->group(function () {
+        Route::post('/sign-out', \App\Http\Controllers\Auth\LogoutUserController::class)->name('sign_out');
+        Route::get('/me', \App\Http\Controllers\Auth\CurrentUserController::class)->name('me');
+    });
 });
